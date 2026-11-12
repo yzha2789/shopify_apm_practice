@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profit Calculator</title>
+  <style>
+    :root {
+      --bg: #f6f6f7;
+      --card: #ffffff;
+      --text: #202223;
+      --muted: #6d7175;
+      --border: #c9cccf;
+      --accent: #008060;
+      --positive: #007f5f;
+      --negative: #d72c0d;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1b1d;
+        --card: #26282b;
+        --text: #e3e5e7;
+        --muted: #a1a5aa;
+        --border: #44474b;
+        --accent: #35b38a;
+        --positive: #4fcf9f;
+        --negative: #ff7a63;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    h1 { margin: 0 0 4px; font-size: 1.35rem; }
+    .sub { margin: 0 0 20px; color: var(--muted); font-size: 0.9rem; }
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+    .field { margin-bottom: 16px; }
+    .input-wrap { position: relative; }
+    .input-wrap span {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--muted);
+    }
+    input {
+      width: 100%;
+      padding: 10px 12px 10px 26px;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+    }
+    input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .stat-label { color: var(--muted); font-size: 0.85rem; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .positive { color: var(--positive); }
+    .negative { color: var(--negative); }
+    .note { margin: 16px 0 0; font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Profit Calculator</h1>
+    <p class="sub">Enter a product's cost and selling price.</p>
+
+    <div class="field">
+      <label for="cost">Product cost</label>
+      <div class="input-wrap">
+        <span>$</span>
+        <input id="cost" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="price">Selling price</label>
+      <div class="input-wrap">
+        <span>$</span>
+        <input id="price" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <section class="results" aria-live="polite">
+      <div>
+        <div class="stat-label">Profit</div>
+        <div class="stat-value" id="profit">—</div>
+      </div>
+      <div>
+        <div class="stat-label">Profit margin</div>
+        <div class="stat-value" id="margin">—</div>
+      </div>
+    </section>
+    <p class="note" id="note"></p>
+  </main>
+
+  <script>
+    const costEl = document.getElementById('cost');
+    const priceEl = document.getElementById('price');
+    const profitEl = document.getElementById('profit');
+    const marginEl = document.getElementById('margin');
+    const noteEl = document.getElementById('note');
+    const money = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' });
+
+    function setTone(el, value) {
+      el.classList.toggle('positive', value > 0);
+      el.classList.toggle('negative', value < 0);
+    }
+
+    function update() {
+      const cost = parseFloat(costEl.value);
+      const price = parseFloat(priceEl.value);
+      noteEl.textContent = '';
+      profitEl.textContent = '—';
+      marginEl.textContent = '—';
+      setTone(profitEl, 0);
+      setTone(marginEl, 0);
+
+      if (isNaN(cost) || isNaN(price)) return;
+      if (cost < 0 || price < 0) {
+        noteEl.textContent = 'Values can’t be negative.';
+        return;
+      }
+
+      const profit = price - cost;
+      profitEl.textContent = money.format(profit);
+      setTone(profitEl, profit);
+
+      if (price === 0) {
+        noteEl.textContent = 'Margin needs a selling price above $0.';
+        return;
+      }
+      const margin = (profit / price) * 100;
+      marginEl.textContent = margin.toFixed(1) + '%';
+      setTone(marginEl, margin);
+      if (profit < 0) noteEl.textContent = 'You’re selling below cost.';
+    }
+
+    costEl.addEventListener('input', update);
+    priceEl.addEventListener('input', update);
+  </script>
+</body>
+</html>
