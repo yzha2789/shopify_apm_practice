@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Product Profit Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+  /* Layout: one centered work card, inputs on top, two result tiles below */
+  :root {
+    --bg: #f3f5f4;
+    --card: #ffffff;
+    --fg: #1d2522;
+    --muted: #5f6b66;
+    --line: #d3dad7;
+    --accent: #0b7a5a;
+    --good: #0b7a5a;
+    --bad: #c4321a;
+    --tile: #f7f9f8;
+    --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141917; --card: #1d2421; --fg: #e4ebe8; --muted: #9aa8a2;
+      --line: #35403b; --accent: #3fc596; --good: #3fc596; --bad: #ff7d66;
+      --tile: #232b28; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141917; --card: #1d2421; --fg: #e4ebe8; --muted: #9aa8a2;
+    --line: #35403b; --accent: #3fc596; --good: #3fc596; --bad: #ff7d66;
+    --tile: #232b28; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 48px;
+  }
+  .card {
+    max-width: 440px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 24px;
+    display: grid;
+    gap: 20px;
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .sub { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+  .fields { display: grid; gap: 14px; }
+  label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
+  .input-wrap { position: relative; }
+  .input-wrap span {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); pointer-events: none;
+  }
+  input {
+    width: 100%;
+    padding: 11px 12px 11px 28px;
+    font: inherit;
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--fg);
+  }
+  input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .results { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tile { background: var(--tile); border-radius: 10px; padding: 14px; min-width: 0; }
+  .stat-label {
+    color: var(--muted); font-size: 0.72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 1.75rem; font-weight: 700; margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .positive { color: var(--good); }
+  .negative { color: var(--bad); }
+  .meta { margin: 0; font-size: 0.85rem; color: var(--muted); min-height: 1.3em; }
+  .meta.warn { color: var(--bad); }
+  .foot { margin: 0; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+  @media (max-width: 360px) { .results { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main class="card">
+  <div>
+    <h1>Product Profit Calculator</h1>
+    <p class="sub">Enter what a product costs you and what you sell it for.</p>
+  </div>
+
+  <div class="fields">
+    <div>
+      <label for="cost">Product cost</label>
+      <div class="input-wrap">
+        <span>$</span>
+        <input id="cost" type="number" inputmode="decimal" min="0" step="0.01" value="12.00">
+      </div>
+    </div>
+    <div>
+      <label for="price">Selling price</label>
+      <div class="input-wrap">
+        <span>$</span>
+        <input id="price" type="number" inputmode="decimal" min="0" step="0.01" value="30.00">
+      </div>
+    </div>
+  </div>
+
+  <section class="results" aria-live="polite">
+    <div class="tile">
+      <div class="stat-label">Profit</div>
+      <div class="stat-value" id="profit">—</div>
+    </div>
+    <div class="tile">
+      <div class="stat-label">Profit margin</div>
+      <div class="stat-value" id="margin">—</div>
+    </div>
+  </section>
+
+  <p class="meta" id="note"></p>
+
+  <p class="foot">Starts with example numbers ($12 cost, $30 price). Margin is profit as a share of the selling price.</p>
+</main>
+
+<script>
+  const costEl = document.getElementById('cost');
+  const priceEl = document.getElementById('price');
+  const profitEl = document.getElementById('profit');
+  const marginEl = document.getElementById('margin');
+  const noteEl = document.getElementById('note');
+  const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+  function tone(el, v) {
+    el.classList.toggle('positive', v > 0);
+    el.classList.toggle('negative', v < 0);
+  }
+  function note(text, warn) {
+    noteEl.textContent = text;
+    noteEl.classList.toggle('warn', !!warn);
+  }
+
+  function update() {
+    const cost = parseFloat(costEl.value);
+    const price = parseFloat(priceEl.value);
+    profitEl.textContent = '—';
+    marginEl.textContent = '—';
+    tone(profitEl, 0); tone(marginEl, 0);
+    note('');
+
+    if (isNaN(cost) || isNaN(price)) { note('Enter both numbers to see your profit.'); return; }
+    if (cost < 0 || price < 0) { note('Cost and price can’t be negative.', true); return; }
+
+    const profit = price - cost;
+    profitEl.textContent = money.format(profit);
+    tone(profitEl, profit);
+
+    if (price === 0) { note('Set a selling price above $0 to see the margin.', true); return; }
+    const margin = profit / price * 100;
+    marginEl.textContent = margin.toFixed(1) + '%';
+    tone(marginEl, margin);
+
+    if (profit < 0) note('You’re selling below cost on this product.', true);
+    else if (cost > 0) note('Markup on cost: ' + (profit / cost * 100).toFixed(1) + '%');
+  }
+
+  costEl.addEventListener('input', update);
+  priceEl.addEventListener('input', update);
+  update();
+</script>
+</body>
+</html>
